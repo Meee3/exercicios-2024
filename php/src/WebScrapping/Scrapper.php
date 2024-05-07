@@ -14,17 +14,18 @@ class Scrapper
   /**
    * Loads paper information from the HTML and returns the array with the data.
    */
-  public function scrap(\DOMDocument $dom, $id): array
+  public function scrap(\DOMDocument $dom,$id,$title,$type,$qtyAuthor=1,$name="Tiago L.",$institution="Life & Dream"): array
   {
-    // Simulação de raspagem de dados para um único artigo
+    $persons = [];
+    for($i = 0; $i < $qtyAuthor;$i++){
+      array_push($persons,new Person($name,$institution));
+    }
+
     $paperData = new Paper(
       $id,
-      'The Nobel Prize in Physiology or Medicine 2023',
-      'Nobel Prize',
-      [
-        new Person('Katalin Karikó', 'Szeged University'),
-        new Person('Drew Weissman', 'University of Pennsylvania')
-      ]
+      $title,
+      $type,
+      $persons,
     );
 
     $this->papers[] = $paperData;
