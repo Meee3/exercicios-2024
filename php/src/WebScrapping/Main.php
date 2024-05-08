@@ -29,57 +29,105 @@ class Main
     //puxar o total
     $qtd = count($xpath->query("//div[@class='volume-info']"));
     $id = $xpath->query("//div[@class='volume-info']");
-    $title = $xpath->query("//h4[@class='my-xs paper-title']");
+    $titulo = $xpath->query("//h4[@class='my-xs paper-title']");
     $type = $xpath->query("//div[@class='tags mr-sm']");
 
 
     //Autores
 
     // Seleciona todas as divs com a classe "authors"
-    $divs = $xpath->query("//div[@class='authors']");
-    $qtdAuthors = [];
+    $divsAuthors = $xpath->query("//div[@class='authors']");
+    $divsInstitution = $xpath->query("//div[@class='authors']/span[@title]");
+    $total_span = $xpath->evaluate("count(//div[@class='authors']/span)");
+
     $authors = [];
+    $separaAuthors = [];
+    $separaInstitution = [];
+    $institution = [];
+    $qtdAuthors = [];
 
+    #Quantidade de Autores
+    $divs = $xpath->query("//div[@class='authors']");
     foreach ($divs as $div) {
-      // Obtém todos os spans dentro da div
+      $total_span = 0;
       $spans = $div->getElementsByTagName('span');
-
-      $authors = [];
       foreach ($spans as $span) {
-        $name = $span->nodeValue; // Obtém o nome do autor
-        $institution = $span->getAttribute('title'); // Obtém a instituição do autor
-
-        // Adiciona o autor ao array
-        $authors[] = [
-          'name' => $name,
-          'institution' => $institution
-        ];
+        $total_span++;
       }
-      //$qtdAuthors = count($authors);
-      array_push($qtdAuthors,count($authors));
+      #echo "Total de spans dentro da div authors: " . $total_span;
+      $qtdAuthors[] = $total_span;
+
+    }
+
+    foreach ($divsAuthors as $fxauthors) {
+
+      $authors[] = $fxauthors->nodeValue;
+      $separaAuthors[] = explode(';', $fxauthors->nodeValue);
+
+    }
+
+    $autores = [];
+    foreach ($separaAuthors as $index => $nomes) {
+      foreach ($nomes as $nome) {
+        if (!empty(trim($nome))) {
+          $autores[] = $nome;
+        }
+      }
     }
 
 
-    print_r($type->item(0)->nodeValue);
-    print_r($authors);
-    exit;
+    foreach ($divsInstitution as $span) {
+      $title = $span->getAttribute('title');
+      if (!empty(trim($title))) {
+        $institution[] = $title;
+      }
+    }
 
-    for ($i = 0; $i < $qtd; $i++) {
-      $instancia->scrap(
+
+    $authorsfished = [];
+
+    for ($i = 0; $i < count($autores) || $i < count($institution); $i++) {
+      $name = isset($autores[$i]) ? trim($autores[$i]) : '';
+      $institution_name = isset($institution[$i]) ? trim($institution[$i]) : '';
+
+      if (!empty($name)) {
+        $obj = ['name' => $name, 'institution' => $institution_name];
+        $authorsfished[] = $obj;
+      }
+    }
+    // print_r($authorsfished);
+    //  print_r($qtdAuthors);
+    //  exit;
+
+    //Agrupar em cada bloco
+    $grupos = [];
+    foreach ($qtdAuthors as $chave => $valor) {
+      $grupo = [];
+      for ($i = 0; $i < $valor; $i++) {
+         $grupo = $authorsfished[$i];
+          // $grupo['name'] = "Oi";
+          // $grupo["institution " . ($i + 1)] = "Oi";
+
+      }
+      $grupos[$chave] = $grupo;
+  }
+
+
+  for($i=0;$i < 62; $i++) {
+    $instancia->scrap(
         $dom,
         $id->item($i)->nodeValue,
-        $title->item($i)->nodeValue,
+        $titulo->item($i)->nodeValue,
         $type->item($i)->nodeValue,
-        $qtyAuthor = $qtdAuthors[$i],
-        $name = $authors[$i]['name'],
-        $institution = $authors[$i]['institution']
-
-      );
-    }
-
+        $qtdAuthors[$i],
+        $grupos[$i]['name'],
+        $grupos[$i]['institution']
+    );
+}
 
 
-    $instancia->scrap($dom, 15, "Meu Valor", "Future", 10);
+
+    #$instancia->scrap($dom, 15, "Meu Valor", "Future", 10);
 
     // Write your logic to save the output file below.
     print_r($instancia->getAllData());
