@@ -113,7 +113,7 @@ class Main
   }
 
 
-  for($i=0;$i < 62; $i++) {
+  for($i = 0;$i < 62; $i++) {
     $instancia->scrap(
         $dom,
         $id->item($i)->nodeValue,
@@ -131,6 +131,8 @@ class Main
 
     // Write your logic to save the output file below.
     print_r($instancia->getAllData());
+
+   $instancia->createXLSXFromObject($instancia);
   }
 
 }
